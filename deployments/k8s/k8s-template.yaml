@@ -1,0 +1,106 @@
+# Development
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: $SERVICE_NAME
+  labels:
+    name: $SERVICE_NAME
+spec:
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      name: $SERVICE_NAME
+  template:
+    metadata:
+      name: $SERVICE_NAME
+      labels:
+        name: $SERVICE_NAME
+    spec:
+      terminationGracePeriodSeconds: 0
+      containers:
+        - name: $SERVICE_NAME-container
+          image: $DOCKER_HUB/$SERVICE_NAME:devel-$DOCKER_IMAGE_TAG
+          resources:
+            requests:
+              cpu: "1m"
+              memory: "5Mi"
+            limits:
+              cpu: "10m"
+              memory: "50Mi"
+          ports:
+            - containerPort: 8005
+          env:
+            - name: SERVICE_NAME
+              value: $SERVICE_NAME
+            - name: SERVICE_VERSION
+              value: $DOCKER_IMAGE_TAG
+            - name: SERVICE_PORT
+              value: "8005"
+            - name: CONTEXT_TIMEOUT
+              value: "3"
+            - name: MONGO_HOST
+              value: localhost
+            - name: MONGO_PORT
+              value: "27017"
+            - name: MONGO_USERNAME
+              value: "admin"
+            - name: MONGO_PASSWORD
+              value: "admin"
+            - name: MONGO_DBNAME
+              value: "kumparan"
+            - name: MONGO_AUTH
+              value: "admin"
+            - name: SWAGGER_TITLE
+              value: "Article Service"
+            - name: SWAGGER_DESCRIPTION
+              value: "Service for serving articles and creating a new article"
+            - name: SWAGGER_VERSION
+              value: $DOCKER_IMAGE_TAG
+            - name: SWAGGER_HOST
+              value: "localhost:6001"
+            - name: SWAGGER_BASE_PATH
+              value: "/article-service/api"
+            - name: SWAGGER_SCHEME
+              value: "https"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: $SERVICE_NAME
+spec:
+  type: NodePort
+  selector:
+    name: $SERVICE_NAME
+  ports:
+    - port: 8005
+      targetPort: 8005
+      nodePort: 30070
+
+---
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: $SERVICE_NAME-hpa
+spec:
+  minReplicas: 1
+  maxReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: $SERVICE_NAME
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 120
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 120

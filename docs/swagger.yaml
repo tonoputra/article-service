@@ -1,0 +1,134 @@
+definitions:
+  articles.Create:
+    properties:
+      data:
+        $ref: '#/definitions/articles.ModelDB'
+    type: object
+  articles.ModelDB:
+    properties:
+      _id:
+        type: string
+      article_body:
+        type: string
+      article_id:
+        type: integer
+      author_name:
+        type: string
+      created_at:
+        type: string
+      title:
+        type: string
+    type: object
+  articles.Response:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/articles.ModelDB'
+        type: array
+    type: object
+  model.Object:
+    type: object
+  response.Body:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /v1/articles:
+    get:
+      consumes:
+      - application/json
+      description: To get all article list
+      parameters:
+      - description: used for page
+        in: query
+        name: start
+        required: true
+        type: string
+      - description: used for perPage
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: asc | desc
+        in: query
+        name: sort
+        type: string
+      - description: used for sorting by field key or title
+        in: query
+        name: sortBy
+        type: string
+      - description: used for perPage
+        in: query
+        name: key
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                subTotal:
+                  type: integer
+                total:
+                  type: integer
+                values:
+                  items:
+                    $ref: '#/definitions/articles.ModelDB'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                errors:
+                  $ref: '#/definitions/model.Object'
+              type: object
+      summary: Find All Articles
+      tags:
+      - Articles
+    post:
+      consumes:
+      - application/json
+      description: To create an article
+      parameters:
+      - description: payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/articles.Create'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                values:
+                  $ref: '#/definitions/articles.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                errors:
+                  $ref: '#/definitions/model.Object'
+              type: object
+      summary: Create an article
+      tags:
+      - Articles
+swagger: "2.0"

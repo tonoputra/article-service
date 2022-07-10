@@ -1,0 +1,21 @@
+##
+## Test
+##
+
+FROM golang:1.16
+
+ENV SERVICE_NAME article-service
+ENV REPOSITORY https://github.com/tonoputra/
+ENV GO111MODULE on
+ENV GOPRIVATE https://github.com/tonoputra/
+
+RUN apt-get update && apt-get install -y git
+
+WORKDIR /go/src/${REPOSITORY}/${SERVICE_NAME}
+
+COPY . .
+
+RUN mv .netrc ~/.netrc && \
+    chmod 600 ~/.netrc
+RUN go mod vendor
+RUN cd cmd/article-service && go test -v

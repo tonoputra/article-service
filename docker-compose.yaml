@@ -1,0 +1,31 @@
+version: '3.8'
+
+# Docker Services
+services:
+    
+  article-service:
+    restart: unless-stopped
+    container_name: tono-article-service
+    build:
+      context: ./
+      dockerfile: build/dev/Dockerfile
+    volumes:
+      - ./:/go/src/article-cache:delegated
+      - tono_go-modules:/go/pkg/mod:cached
+    environment:
+      - "GO_ENV=development"
+    ports:
+      - ${SERVICE_PORT}:6000
+
+############# end of services
+
+# Docker Networks
+networks:
+  default:
+    external: true
+    name: tono-network
+
+# Docker Volumes
+volumes:
+  tono_go-modules:
+    external: true
